@@ -9,7 +9,7 @@ import {
 import { successResponse } from "../utils/response";
 import { AppError } from "../utils/AppError";
 import { asyncHandler } from "../utils/asyncHandler";
-import { Role } from "../models";
+import { Role } from "../types";
 
 export const getUserController = asyncHandler(async (req: Request, res: Response) => {
     const id = req.params.id as string;

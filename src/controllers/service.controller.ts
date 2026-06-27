@@ -9,7 +9,7 @@ import {
 import { successResponse } from "../utils/response";
 import { AppError } from "../utils/AppError";
 import { asyncHandler } from "../utils/asyncHandler";
-import { ServiceCategory } from "../models";
+import { ServiceCategory } from "../types";
 
 export const getServiceController = asyncHandler(async (req: Request, res: Response) => {
     const id = req.params.id as string;

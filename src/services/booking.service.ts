@@ -1,4 +1,4 @@
-import { Booking, BookingStatus } from "../models";
+import { Booking, BookingStatus } from "../types";
 import { getUserService } from "./user.service";
 import { getServiceById } from "./service.service";
 import { AppError } from "../utils/AppError";

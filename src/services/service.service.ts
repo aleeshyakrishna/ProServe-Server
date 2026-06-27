@@ -1,4 +1,4 @@
-import { Service, ServiceCategory } from "../models";
+import { Service, ServiceCategory } from "../types";
 import { getUserService } from "./user.service";
 import crypto from "crypto";
 import { AppError } from "../utils/AppError";

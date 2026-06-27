@@ -9,7 +9,7 @@ import {
 import { successResponse } from "../utils/response";
 import { AppError } from "../utils/AppError";
 import { asyncHandler } from "../utils/asyncHandler";
-import { BookingStatus } from "../models";
+import { BookingStatus } from "../types";
 
 export const getBookingController = asyncHandler(async (req: Request, res: Response) => {
     const id = req.params.id as string;

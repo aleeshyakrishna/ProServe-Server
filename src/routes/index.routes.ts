@@ -1,11 +1,15 @@
 import { Router } from "express";
+import authRouter from "./auth.routes";
 import userRouter from "./user.routes";
 import serviceRouter from "./service.routes";
 import bookingRouter from "./booking.routes";
 
 const router = Router();
 
-// Mount resources
+// Auth module (register, login, me, etc.)
+router.use("/auth", authRouter);
+
+// Resource routers
 router.use("/users", userRouter);
 router.use("/services", serviceRouter);
 router.use("/bookings", bookingRouter);

@@ -1,4 +1,4 @@
-import { User, Provider, Role } from "../models";
+import { User, Provider, Role } from "../types";
 import crypto from "crypto";
 import { db } from "../db/index";
 import { users, services } from "../db/schema";
