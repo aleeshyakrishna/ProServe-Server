@@ -28,7 +28,7 @@ export interface Service {
     description: string;
     category: ServiceCategory;
     price: number;
-    providerId: string;
+    providerId: any;
     isAvailable: boolean;
 }
 
@@ -46,3 +46,5 @@ export interface Booking {
     status: BookingStatus;
     createdAt: Date;
 }
+
+export type User = BaseUser | Provider;

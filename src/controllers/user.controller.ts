@@ -1,50 +1,81 @@
-import { Request, Response } from "express"
-import { getUserService, User, createUserService, getAllUserService, deleteUserService } from "../services/user.service"
-import { successResponse } from "../utils/response"
-import { AppError } from "../utils/AppError"
+import { Request, Response } from "express";
+import { 
+    getUserService, 
+    createUserService, 
+    getAllUserService, 
+    updateUserService, 
+    deleteUserService 
+} from "../services/user.service";
+import { successResponse } from "../utils/response";
+import { AppError } from "../utils/AppError";
+import { asyncHandler } from "../utils/asyncHandler";
+import { Role } from "../models";
 
-
-export const getUserController = async (req: Request, res: Response) => {
-    const { id } = req.params
-    const user: User = await getUserService(Number(id))
+export const getUserController = asyncHandler(async (req: Request, res: Response) => {
+    const id = req.params.id as string;
+    const user = await getUserService(id);
     if (!user) {
-        throw new AppError("User not found", 404)
+        throw new AppError("User not found", 404);
     }
     return res.status(200).json(
-        successResponse<User>(user, "User fetched successfully")
-    )
-}
+        successResponse(user, "User fetched successfully")
+    );
+});
 
-export const createUserController = async (req: Request, res: Response) => {
-    const { id, name, email } = req.body
-    if (!name || !email) {
-        throw new AppError("Name and email are required", 400)
-    }
-    const user: User = await createUserService({
-        name, email
-    })
+export const createUserController = asyncHandler(async (req: Request, res: Response) => {
+    const { name, email, role, servicesOffered, rating } = req.body;
+    const user = await createUserService({
+        name,
+        email,
+        role,
+        servicesOffered,
+        rating
+    });
     return res.status(201).json(
         successResponse(user, "User created successfully")
-    )
-}
+    );
+});
 
-export const getAllUserController = async (req: Request, res: Response) => {
-    const users: User[] = await getAllUserService()
+export const getAllUserController = asyncHandler(async (req: Request, res: Response) => {
+    const roleParam = req.query.role as string | undefined;
+    
+    let role: Role | undefined = undefined;
+    if (roleParam === "USER" || roleParam === "PROVIDER" || roleParam === "ADMIN") {
+        role = roleParam;
+    } else if (roleParam) {
+        throw new AppError("Invalid role query parameter", 400);
+    }
+
+    const users = await getAllUserService(role);
     return res.status(200).json(
         successResponse(users, "Users fetched successfully")
-    )
-}
+    );
+});
 
-export const deleteUserController = async (req: Request, res: Response) => {
-    const { id } = req.params
-    // Implement delete logic here
-    const user: User = await getUserService(Number(id))
+export const updateUserController = asyncHandler(async (req: Request, res: Response) => {
+    const id = req.params.id as string;
+    
+    const user = await getUserService(id);
     if (!user) {
-        throw new AppError("User not found", 404)
+        throw new AppError("User not found", 404);
     }
-    await deleteUserService(Number(id))
 
+    const updatedUser = await updateUserService(id, req.body);
+    return res.status(200).json(
+        successResponse(updatedUser, "User updated successfully")
+    );
+});
+
+export const deleteUserController = asyncHandler(async (req: Request, res: Response) => {
+    const id = req.params.id as string;
+    
+    const user = await getUserService(id);
+    if (!user) {
+        throw new AppError("User not found", 404);
+    }
+
+    await deleteUserService(id);
     return res.status(200).json(
         successResponse(null, "User deleted successfully")
-    )
-}
+    );
+});

@@ -51,6 +51,12 @@
       "noImplicitAny": true,
       "strictNullChecks": true,
       "esModuleInterop": true,
-    }
+      "skipLibCheck": true
+    },
+    "exclude": [
+      "node_modules",
+      "dist",
+      "drizzle.config.ts"
+    ]
 
 }
