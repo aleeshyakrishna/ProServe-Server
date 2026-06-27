@@ -1,12 +1,21 @@
 import { z } from "zod";
 
 const UAE_PHONE_REGEX = /^(?:\+971|0)?5[024568]\d{7}$/;
+const passwordSchema = z
+  .string()
+  .min(8)
+  .max(50)
+  .regex(/[A-Z]/, "...")
+  .regex(/[a-z]/, "...")
+  .regex(/\d/, "...")
+  .regex(/[!@#$%^&*(),.?":{}|<>]/, "...");
 
 export const RegisterValidationSchema = z.object({
   fullName: z
     .string()
     .min(2, "Full name must be at least 2 characters")
-    .max(100, "Full name must not exceed 100 characters"),
+    .max(100, "Full name must not exceed 100 characters")
+    .regex(/^[A-Za-z\s'-]+$/),
   email: z
     .string()
     .min(1, "Email address is required")
@@ -14,14 +23,7 @@ export const RegisterValidationSchema = z.object({
   phone: z
     .string()
     .regex(UAE_PHONE_REGEX, "Please enter a valid UAE mobile number (e.g. +971 50 123 4567 or 050 123 4567)"),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(50, "Password must not exceed 50 characters")
-    .refine((val) => /[A-Z]/.test(val), { message: "Must contain at least one uppercase letter" })
-    .refine((val) => /[a-z]/.test(val), { message: "Must contain at least one lowercase letter" })
-    .refine((val) => /\d/.test(val), { message: "Must contain at least one number" })
-    .refine((val) => /[!@#$%^&*(),.?":{}|<>]/.test(val), { message: "Must contain at least one special character" }),
+  password: passwordSchema,
   role: z.enum(["CUSTOMER", "SERVICE_PROVIDER"]),
 });
 
@@ -43,15 +45,7 @@ export const ForgotPasswordValidationSchema = z.object({
 });
 
 export const ResetPasswordValidationSchema = z.object({
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(50, "Password must not exceed 50 characters")
-    .refine((val) => /[A-Z]/.test(val), { message: "Must contain at least one uppercase letter" })
-    .refine((val) => /[a-z]/.test(val), { message: "Must contain at least one lowercase letter" })
-    .refine((val) => /\d/.test(val), { message: "Must contain at least one number" })
-    .refine((val) => /[!@#$%^&*(),.?":{}|<>]/.test(val), { message: "Must contain at least one special character" }),
-  token: z.string().min(1, "Reset token is required"),
+  password: passwordSchema
 });
 
 export const UpdateProfileValidationSchema = z.object({
@@ -65,12 +59,5 @@ export const UpdateProfileValidationSchema = z.object({
 
 export const ChangePasswordValidationSchema = z.object({
   oldPassword: z.string().min(1, "Current password is required"),
-  newPassword: z
-    .string()
-    .min(8, "New password must be at least 8 characters")
-    .max(50, "New password must not exceed 50 characters")
-    .refine((val) => /[A-Z]/.test(val), { message: "Must contain at least one uppercase letter" })
-    .refine((val) => /[a-z]/.test(val), { message: "Must contain at least one lowercase letter" })
-    .refine((val) => /\d/.test(val), { message: "Must contain at least one number" })
-    .refine((val) => /[!@#$%^&*(),.?":{}|<>]/.test(val), { message: "Must contain at least one special character" }),
+  newPassword: passwordSchema
 });
