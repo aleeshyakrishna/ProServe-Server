@@ -4,7 +4,9 @@ import { ProfileRepository } from "../repositories/ProfileRepository";
 import { RoleRepository } from "../repositories/RoleRepository";
 import { AppError } from "../utils/AppError";
 import crypto from "crypto";
-import { profiles } from "../db/schema";
+import { profiles, roles, userRoles } from "../db/schema";
+import { db } from "../db/index";
+import { eq } from "drizzle-orm";
 
 export interface RegisterDTO {
   fullName: string;
@@ -105,7 +107,46 @@ export class AuthService {
     const supabaseUserId = signInData.user.id;
 
     // 2. Fetch local user mapping
-    const localUser = await UserRepository.findBySupabaseId(supabaseUserId);
+    let localUser = await UserRepository.findBySupabaseId(supabaseUserId);
+    if (!localUser && signInData.user.email) {
+      const existingByEmail = await UserRepository.findByEmail(signInData.user.email);
+      if (existingByEmail) {
+        // Link Supabase ID to the existing local user record
+        localUser = await UserRepository.update(existingByEmail.id, {
+          supabaseUserId: supabaseUserId
+        });
+      } else {
+        // Dynamic auto-create to prevent login blockages
+        const localId = `usr_${crypto.randomUUID().substring(0, 8)}`;
+        localUser = await UserRepository.create({
+          id: localId,
+          supabaseUserId: supabaseUserId,
+          email: signInData.user.email,
+          name: signInData.user.user_metadata?.fullName || signInData.user.email.split("@")[0],
+          role: (signInData.user.user_metadata?.role as "USER" | "PROVIDER" | "ADMIN") || "PROVIDER",
+        });
+
+        // Seed profile
+        await db.insert(profiles).values({
+          id: `prof_${crypto.randomUUID().substring(0, 8)}`,
+          userId: localId,
+          fullName: localUser.name,
+          phone: "000-000-0000",
+        });
+
+        // Seed role relationship
+        let roleId = "role_provider";
+        const rolesList = await db.select().from(roles).where(eq(roles.name, "SERVICE_PROVIDER")).limit(1);
+        if (rolesList[0]) {
+          roleId = rolesList[0].id;
+        }
+        await db.insert(userRoles).values({
+          userId: localId,
+          roleId: roleId
+        });
+      }
+    }
+
     if (!localUser) {
       throw new AppError("Local account mapping not found. Please contact support.", 404);
     }

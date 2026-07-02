@@ -1,5 +1,5 @@
 import { db } from "./index";
-import { users, services, bookings } from "./schema";
+import { users, services, bookings, categories } from "./schema";
 
 async function main() {
   console.log("Seeding database...");
@@ -7,9 +7,49 @@ async function main() {
   // Delete existing data to start fresh
   await db.delete(bookings);
   await db.delete(services);
+  await db.delete(categories);
   await db.delete(users);
 
-  // 1. Seed users
+  // 1. Seed categories
+  await db.insert(categories).values([
+    {
+      id: "cat_1",
+      name: "PLUMBING",
+      slug: "plumbing",
+      description: "Professional plumbing leaks, pipes and fitting fixtures.",
+      iconName: "Droplets",
+    },
+    {
+      id: "cat_2",
+      name: "ELECTRICAL",
+      slug: "electrical",
+      description: "Certified electrical socket fixes, lighting installations and wiring.",
+      iconName: "Zap",
+    },
+    {
+      id: "cat_3",
+      name: "CLEANING",
+      slug: "cleaning",
+      description: "Full deep home and office sanitization and disinfection cleaning.",
+      iconName: "Sparkles",
+    },
+    {
+      id: "cat_4",
+      name: "SALON",
+      slug: "salon",
+      description: "Home makeup, hair style and nail care cosmetic treatments.",
+      iconName: "Scissors",
+    },
+    {
+      id: "cat_5",
+      name: "CONSULTATION",
+      slug: "consultation",
+      description: "Expert legal, accounting and tech consultant solutions.",
+      iconName: "FileText",
+    },
+  ]);
+
+  // 2. Seed users
   await db.insert(users).values([
     {
       id: "usr_1",

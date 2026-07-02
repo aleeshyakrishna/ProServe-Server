@@ -65,3 +65,15 @@ export const bookings = pgTable("bookings", {
   status: text("status").$type<"PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED">().default("PENDING").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// ------ Categories Table (New Table) --------------------------
+export const categories = pgTable("categories", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull().unique(), // e.g. "PLUMBING", "ELECTRICAL", "CLEANING", "SALON", "CONSULTATION"
+  slug: text("slug").notNull().unique(), // e.g. "plumbing", "electrical"
+  description: text("description"),
+  iconName: text("icon_name"), // e.g. "Droplets", "Zap"
+  imageUrl: text("image_url"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
