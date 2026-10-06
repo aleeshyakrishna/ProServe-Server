@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const UAE_PHONE_REGEX = /^(?:\+971|0)?5[024568]\d{7}$/;
+const UAE_PHONE_REGEX = /^(?:\+971|0)?\s*5[024568](?:\s*\d){7}$/;
 const passwordSchema = z
   .string()
   .min(8)

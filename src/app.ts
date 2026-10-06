@@ -20,6 +20,15 @@ app.use(
   })
 );
 
+// Root endpoint greeting
+app.get("/", (req, res) => {
+  res.status(200).json({
+    message: "ProServe Backend API is running!",
+    healthCheck: "/api/health",
+    documentation: "/api"
+  });
+});
+
 // Modular API routes
 app.use("/api", apiRouter);
 

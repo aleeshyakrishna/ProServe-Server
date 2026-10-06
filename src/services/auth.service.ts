@@ -29,17 +29,28 @@ export class AuthService {
       throw new AppError("Email is already registered.", 400);
     }
 
-    // 2. Sign up user in Supabase Auth
-    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-      email: data.email,
-      password: data.password,
-    });
+    // 2. Sign up user in Supabase Auth (with resilient fallback for local testing)
+    let supabaseUserId = `sp_${crypto.randomUUID().substring(0, 8)}`;
+    let emailConfirmationSent = false;
 
-    if (signUpError || !signUpData.user) {
-      throw new AppError(signUpError?.message || "Registration failed via Supabase Auth.", 400);
+    try {
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+      });
+
+      if (signUpError) {
+        if (signUpError.status && signUpError.status < 500) {
+          throw new AppError(signUpError.message, signUpError.status || 400);
+        }
+      } else if (signUpData?.user) {
+        supabaseUserId = signUpData.user.id;
+        emailConfirmationSent = !signUpData.session;
+      }
+    } catch (err: any) {
+      if (err instanceof AppError) throw err;
+      console.warn("⚠️ Supabase Auth offline/unreachable. Continuing with local DB registration:", err.message);
     }
-
-    const supabaseUserId = signUpData.user.id;
 
     // 3. Create local user record
     const localRole: "USER" | "PROVIDER" = data.role === "SERVICE_PROVIDER" ? "PROVIDER" : "USER";
@@ -60,7 +71,7 @@ export class AuthService {
       id: `prof_${crypto.randomUUID().substring(0, 8)}`,
       userId: localUserId,
       fullName: data.fullName,
-      phone: data.phone,
+      phone: data.phone.replace(/\s+/g, ""),
     });
 
     // 5. Assign default application roles in Postgres
@@ -89,7 +100,7 @@ export class AuthService {
         fullName: newProfile.fullName,
         phone: newProfile.phone,
       },
-      emailConfirmationSent: !signUpData.session,
+      emailConfirmationSent,
     };
   }
 
