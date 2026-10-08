@@ -12,6 +12,7 @@ export const env = {
   NODE_ENV: process.env.NODE_ENV || "development",
   SUPABASE_URL: process.env.SUPABASE_URL || "",
   SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || "",
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY || "",
 };
 
 if (env.NODE_ENV !== "test" && (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY)) {
