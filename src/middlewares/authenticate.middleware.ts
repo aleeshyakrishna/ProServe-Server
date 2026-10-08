@@ -31,13 +31,18 @@ export const authenticate = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    let token: string | undefined;
     const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      throw new AppError("Authentication token is missing or malformed.", 401);
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.split(" ")[1];
+    } else if (req.cookies && req.cookies.ps_access_token) {
+      token = req.cookies.ps_access_token;
     }
 
-    const token = authHeader.split(" ")[1];
+    if (!token) {
+      throw new AppError("Authentication token is missing or malformed.", 401);
+    }
 
     // Validate token with Supabase Auth
     const { data: userData, error } = await supabase.auth.getUser(token);

@@ -30,21 +30,33 @@ export const createServiceController = asyncHandler(async (req: Request, res: Re
 });
 
 export const getAllServicesController = asyncHandler(async (req: Request, res: Response) => {
-    const { category, providerId, isAvailable } = req.query;
+    const { category, providerId, isAvailable, search, location } = req.query;
 
     const filters: {
         category?: ServiceCategory;
         providerId?: string;
         isAvailable?: boolean;
+        searchQuery?: string;
+        location?: string;
     } = {};
 
     if (category) {
-        const cat = String(category).toUpperCase();
-        const validCategories = ["PLUMBING", "ELECTRICAL", "CLEANING", "SALON", "CONSULTATION"];
-        if (!validCategories.includes(cat)) {
-            throw new AppError("Invalid category query parameter", 400);
+        const catRaw = String(category).toUpperCase().replace(/-/g, "_");
+        // Map common category slugs or aliases
+        const categoryMap: Record<string, ServiceCategory> = {
+            PLUMBING: "PLUMBING",
+            ELECTRICAL: "ELECTRICAL",
+            CLEANING: "CLEANING",
+            HOME_CLEANING: "CLEANING",
+            SALON: "SALON",
+            BEAUTY_WELLNESS: "SALON",
+            CONSULTATION: "CONSULTATION",
+            AC_HVAC: "ELECTRICAL",
+        };
+
+        if (categoryMap[catRaw]) {
+            filters.category = categoryMap[catRaw];
         }
-        filters.category = cat as ServiceCategory;
     }
 
     if (providerId) {
@@ -53,6 +65,14 @@ export const getAllServicesController = asyncHandler(async (req: Request, res: R
 
     if (isAvailable !== undefined) {
         filters.isAvailable = String(isAvailable) === "true";
+    }
+
+    if (search) {
+        filters.searchQuery = String(search);
+    }
+
+    if (location) {
+        filters.location = String(location);
     }
 
     const services = await getAllServices(filters);

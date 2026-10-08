@@ -23,6 +23,15 @@ export const login = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const result = await AuthService.login(req.body);
 
+    if (result?.session?.accessToken) {
+      res.cookie("ps_access_token", result.session.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+    }
+
     res.status(200).json(successResponse(result, "Login successful."));
   }
 );
@@ -32,6 +41,7 @@ export const login = asyncHandler(
 export const logout = asyncHandler(
   async (_req: Request, res: Response): Promise<void> => {
     await AuthService.logout();
+    res.clearCookie("ps_access_token");
 
     res.status(200).json(successResponse(null, "Logged out successfully."));
   }
