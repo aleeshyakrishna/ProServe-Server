@@ -63,6 +63,12 @@ export const bookings = pgTable("bookings", {
   serviceId: text("service_id").references(() => services.id, { onDelete: "cascade" }).notNull(),
   scheduledAt: timestamp("scheduled_at").notNull(),
   status: text("status").$type<"PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED">().default("PENDING").notNull(),
+  address: text("address"),
+  propertyType: text("property_type"),
+  notes: text("notes"),
+  timeSlot: text("time_slot"),
+  totalPrice: integer("total_price"),
+  paymentMethod: text("payment_method"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

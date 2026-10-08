@@ -6,7 +6,13 @@ export const createBookingSchema = z.object({
     scheduledAt: z.coerce.date().refine((date) => date > new Date(), {
         message: "scheduledAt must be a future date"
     }),
-    status: z.enum(["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED"]).default("PENDING")
+    status: z.enum(["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED"]).default("PENDING"),
+    address: z.string().optional(),
+    propertyType: z.string().optional(),
+    notes: z.string().optional(),
+    timeSlot: z.string().optional(),
+    totalPrice: z.number().optional(),
+    paymentMethod: z.string().optional()
 });
 
 export const updateBookingSchema = z.object({
@@ -15,5 +21,11 @@ export const updateBookingSchema = z.object({
     scheduledAt: z.coerce.date().refine((date) => date > new Date(), {
         message: "scheduledAt must be a future date"
     }).optional(),
-    status: z.enum(["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED"]).optional()
+    status: z.enum(["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED"]).optional(),
+    address: z.string().optional(),
+    propertyType: z.string().optional(),
+    notes: z.string().optional(),
+    timeSlot: z.string().optional(),
+    totalPrice: z.number().optional(),
+    paymentMethod: z.string().optional()
 });

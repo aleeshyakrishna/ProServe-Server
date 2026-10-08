@@ -23,12 +23,18 @@ export const getBookingController = asyncHandler(async (req: Request, res: Respo
 });
 
 export const createBookingController = asyncHandler(async (req: Request, res: Response) => {
-    const { userId, serviceId, scheduledAt, status } = req.body;
+    const { userId, serviceId, scheduledAt, status, address, propertyType, notes, timeSlot, totalPrice, paymentMethod } = req.body;
     const booking = await createBooking({
         userId,
         serviceId,
         scheduledAt: new Date(scheduledAt),
-        status
+        status,
+        address,
+        propertyType,
+        notes,
+        timeSlot,
+        totalPrice,
+        paymentMethod
     });
     return res.status(201).json(
         successResponse(booking, "Booking created successfully")

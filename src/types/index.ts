@@ -44,6 +44,12 @@ export interface Booking {
     serviceId: string;
     scheduledAt: Date;
     status: BookingStatus;
+    address?: string | null;
+    propertyType?: string | null;
+    notes?: string | null;
+    timeSlot?: string | null;
+    totalPrice?: number | null;
+    paymentMethod?: string | null;
     createdAt: Date;
 }
 

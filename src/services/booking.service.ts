@@ -19,6 +19,12 @@ export const createBooking = async (bookingData: {
     serviceId: string;
     scheduledAt: Date;
     status?: BookingStatus;
+    address?: string;
+    propertyType?: string;
+    notes?: string;
+    timeSlot?: string;
+    totalPrice?: number;
+    paymentMethod?: string;
 }): Promise<Booking> => {
     // 1. Verify customer (user) exists and is active
     const customer = await getUserService(bookingData.userId);
@@ -82,6 +88,12 @@ export const createBooking = async (bookingData: {
         serviceId: bookingData.serviceId,
         scheduledAt: bookingData.scheduledAt,
         status: bookingData.status || "PENDING",
+        address: bookingData.address || null,
+        propertyType: bookingData.propertyType || null,
+        notes: bookingData.notes || null,
+        timeSlot: bookingData.timeSlot || null,
+        totalPrice: bookingData.totalPrice || null,
+        paymentMethod: bookingData.paymentMethod || null,
         createdAt: new Date()
     };
 
@@ -113,6 +125,12 @@ export const getAllBookings = async (filters?: {
                 serviceId: bookings.serviceId,
                 scheduledAt: bookings.scheduledAt,
                 status: bookings.status,
+                address: bookings.address,
+                propertyType: bookings.propertyType,
+                notes: bookings.notes,
+                timeSlot: bookings.timeSlot,
+                totalPrice: bookings.totalPrice,
+                paymentMethod: bookings.paymentMethod,
                 createdAt: bookings.createdAt
             })
             .from(bookings)
