@@ -4,6 +4,7 @@ import userRouter from "./user.routes";
 import serviceRouter from "./service.routes";
 import bookingRouter from "./booking.routes";
 import categoryRouter from "./category.routes";
+import aiRouter from "./ai.routes";
 
 const router = Router();
 
@@ -15,6 +16,7 @@ router.use("/users", userRouter);
 router.use("/services", serviceRouter);
 router.use("/bookings", bookingRouter);
 router.use("/categories", categoryRouter);
+router.use("/ai", aiRouter);
 
 // Health check endpoint
 router.get("/health", (req, res) => {

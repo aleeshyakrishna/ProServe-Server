@@ -4,7 +4,7 @@ import crypto from "crypto";
 import { AppError } from "../utils/AppError";
 import { db } from "../db/index";
 import { services } from "../db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, lte, ilike, or } from "drizzle-orm";
 
 export const getServiceById = async (id: string): Promise<Service | undefined> => {
     const result = await db.select().from(services).where(eq(services.id, id)).limit(1);
@@ -48,6 +48,8 @@ export const getAllServices = async (filters?: {
     category?: ServiceCategory;
     providerId?: string;
     isAvailable?: boolean;
+    maxPrice?: number;
+    searchQuery?: string;
 }): Promise<Service[]> => {
     const query = db.select().from(services);
     const conditions = [];
@@ -61,6 +63,13 @@ export const getAllServices = async (filters?: {
         }
         if (filters.isAvailable !== undefined) {
             conditions.push(eq(services.isAvailable, filters.isAvailable));
+        }
+        if (filters.maxPrice !== undefined) {
+            conditions.push(lte(services.price, filters.maxPrice));
+        }
+        if (filters.searchQuery) {
+            const term = `%${filters.searchQuery}%`;
+            conditions.push(or(ilike(services.title, term), ilike(services.description, term)));
         }
     }
 
