@@ -39,6 +39,36 @@ const SERVICE_KEYWORDS = [
     "consult", "advisor", "legal", "design", "architect", "service", "book", "fix", "repair"
 ];
 
+// Total time allowed for Gemini, across all retries, before using the rule-based parser
+const GEMINI_TIMEOUT_MS = 8000;
+// Pause before retrying after a 503 "high demand" error
+const GEMINI_RETRY_DELAY_MS = 600;
+// Skip a retry if less than this much time would be left for it
+const GEMINI_MIN_ATTEMPT_MS = 1000;
+
+/**
+ * Runs a Gemini call with a time limit. The signal cancels the HTTP request,
+ * and the timer guarantees the promise rejects even if the SDK ignores the abort.
+ */
+const withTimeout = async <T>(
+    run: (signal: AbortSignal) => Promise<T>,
+    ms: number
+): Promise<T> => {
+    const controller = new AbortController();
+    let timer: NodeJS.Timeout | undefined;
+    const timeout = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => {
+            controller.abort();
+            reject(new Error(`Gemini request timed out (${GEMINI_TIMEOUT_MS}ms overall limit)`));
+        }, ms);
+    });
+    try {
+        return await Promise.race([run(controller.signal), timeout]);
+    } finally {
+        clearTimeout(timer);
+    }
+};
+
 /**
  * Intelligent conversational fallback parser used when live Gemini API quota is rate-limited.
  */
@@ -146,12 +176,16 @@ Extract key search terms (e.g., "2 bedroom", "AC technician", "deep clean") into
 
     try {
         let response: any = null;
+        // One deadline shared by every attempt, so retries can't stretch the total wait
+        const deadline = Date.now() + GEMINI_TIMEOUT_MS;
         for (let attempt = 0; attempt < 3; attempt++) {
+            const remainingMs = deadline - Date.now();
             try {
-                response = await ai.models.generateContent({
+                response = await withTimeout((signal) => ai.models.generateContent({
                     model: "gemini-3.8-flash",
                     contents: userPrompt,
                     config: {
+                        abortSignal: signal,
                         systemInstruction,
                         responseMimeType: "application/json",
                         responseSchema: {
@@ -194,15 +228,16 @@ Extract key search terms (e.g., "2 bedroom", "AC technician", "deep clean") into
                             required: ["intent", "summary"],
                         },
                     },
-                });
+                }), remainingMs);
 
                 if (response?.text) break;
             } catch (err: any) {
-                // If temporary 503 high-demand spike occurs, wait 600ms and retry
+                // If a temporary 503 high-demand spike occurs, retry only if enough time is left
                 const is503 = err?.status === 503 || String(err?.message || "").includes("503") || String(err?.message || "").includes("high demand");
-                if (attempt < 2 && is503) {
-                    console.log(`⚠️ [AI Engine] 503 spikes on attempt ${attempt + 1}, retrying in 600ms...`);
-                    await new Promise((r) => setTimeout(r, 600));
+                const timeLeftAfterPause = deadline - Date.now() - GEMINI_RETRY_DELAY_MS;
+                if (attempt < 2 && is503 && timeLeftAfterPause >= GEMINI_MIN_ATTEMPT_MS) {
+                    console.log(`⚠️ [AI Engine] 503 spikes on attempt ${attempt + 1}, retrying in ${GEMINI_RETRY_DELAY_MS}ms...`);
+                    await new Promise((r) => setTimeout(r, GEMINI_RETRY_DELAY_MS));
                     continue;
                 }
                 throw err;
