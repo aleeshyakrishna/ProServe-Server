@@ -9,7 +9,8 @@
     "dev": "ts-node-dev --respawn src/server.ts",
     "db:push": "drizzle-kit push",
     "db:seed": "ts-node src/db/seed.ts",
-    "test": "ts-node src/tests/run-tests.ts"
+    "test": "ts-node src/tests/run-tests.ts",
+    "eval:assistant": "ts-node src/tests/assistant.eval.ts"
   },
   "keywords": [],
   "author": "",
