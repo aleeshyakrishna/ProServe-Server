@@ -149,7 +149,10 @@ const fallbackRuleParser = (userPrompt: string): AIQueryInterpretation => {
 /**
  * Uses Gemini AI to parse natural language user intent and query PostgreSQL via Drizzle ORM.
  */
-export const processUserAIRequest = async (userPrompt: string): Promise<AISearchResult> => {
+export const processUserAIRequest = async (
+    userPrompt: string,
+    options: { useAI?: boolean } = {}
+): Promise<AISearchResult> => {
     dotenv.config();
     const apiKey = process.env.GEMINI_API_KEY;
     const ai = new GoogleGenAI({ apiKey });
@@ -174,7 +177,11 @@ Extract key search terms (e.g., "2 bedroom", "AC technician", "deep clean") into
     let interpretation: AIQueryInterpretation | null = null;
     let source: "GEMINI_AI" | "FALLBACK_RULES" = "GEMINI_AI";
 
-    try {
+    if (options.useAI === false) {
+        // Rule-based only (used as the agent fallback, so it never spends extra Gemini quota)
+        interpretation = fallbackRuleParser(userPrompt);
+        source = "FALLBACK_RULES";
+    } else try {
         let response: any = null;
         // One deadline shared by every attempt, so retries can't stretch the total wait
         const deadline = Date.now() + GEMINI_TIMEOUT_MS;

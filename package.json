@@ -10,7 +10,8 @@
     "db:push": "drizzle-kit push",
     "db:seed": "ts-node src/db/seed.ts",
     "test": "ts-node src/tests/run-tests.ts",
-    "eval:assistant": "ts-node src/tests/assistant.eval.ts"
+    "eval:assistant": "ts-node src/tests/assistant.eval.ts",
+    "gemini:models": "ts-node src/tests/list-models.ts"
   },
   "keywords": [],
   "author": "",
