@@ -4,7 +4,8 @@ import * as path from "path";
 // Load environment variables from .env file
 dotenv.config({
   path: path.resolve(process.cwd(), ".env"),
-  override: true,
+  override: process.env.NODE_ENV !== 'test', quiet: true
+  // override: true,
 });
 
 export const env = {

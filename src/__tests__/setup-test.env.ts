@@ -1,0 +1,5 @@
+process.env.NODE_ENV = 'test'
+process.env.DATABASE_URL = 'postgres://test:test@localhost:5432/test'
+process.env.SUPABASE_URL = 'http://localhost'
+process.env.SUPABASE_ANON_KEY = 'test-key'
+process.env.GEMINI_API_KEY = 'test-key'

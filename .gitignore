@@ -5,6 +5,7 @@ node_modules/
 dist/
 build/
 drizzle.config.js
+coverage/
 
 # Local environment variables (sensitive)
 .env
