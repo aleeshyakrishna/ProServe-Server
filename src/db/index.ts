@@ -2,7 +2,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as dotenv from "dotenv";
 import * as schema from "./schema";
-dotenv.config({ override: true });
+dotenv.config({ override: process.env.NODE_ENV !== 'test', quiet: true });
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL environment variable is missing");
