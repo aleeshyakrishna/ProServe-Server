@@ -12,7 +12,7 @@ The frontend lives in a separate repo: [ProServe_Client](https://github.com/alee
 - **AI booking assistant:** Gemini function calling with read-only tools (search services, get details, check availability), argument validation and model fallback
 - **Validation** of every request body with Zod
 - **Consistent API responses** and central error handling
-- **Automated tests:** 34 Jest + Supertest tests (see [Testing](#testing))
+- **Automated tests:** 36 Jest + Supertest tests (see [Testing](#testing))
 
 ## Tech Stack
 
@@ -113,7 +113,7 @@ The API runs at `http://localhost:5001`. Check it with `GET /api/health`.
 
 ## Testing
 
-The API has **34 automated tests** written with **Jest** and **Supertest**.
+The API has **36 automated tests** written with **Jest** and **Supertest**.
 
 ```bash
 npm test
@@ -136,7 +136,7 @@ npm run test:coverage
 | `health.test.ts` | 1 | The app starts and responds |
 | `protected-routes.test.ts` | 7 | No token → 401 on bookings, users, services and auth routes |
 | `auth-middleware.test.ts` | 6 | Invalid token, bad header, cookie token, 404 no account, 403 inactive account, 403 wrong role |
-| `categories.test.ts` | 8 | Public list, 401s, 400 validation errors, 201 create, 200 update |
+| `categories.test.ts` | 10 | Public list, get by id (200 and 404), 401s, 400 validation errors, 201 create, 200 update |
 | `validations.test.ts` | 7 | Zod schema rules for categories, services and bookings |
 | `assistant-tools.test.ts` | 5 | AI tool layer: unknown tool, invalid arguments, available-only search, never throws |
 

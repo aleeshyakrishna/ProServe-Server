@@ -76,6 +76,29 @@ describe('GET /api/categories (public)', () => {
     });
 });
 
+describe('GET /api/categories/:id (public)', () => {
+    it('returns the category when it exists (200)', async () => {
+        mockGetCategory.mockResolvedValue({ id: 'cat-1', name: 'CLEANING', slug: 'cleaning' });
+
+        const res = await request(app).get('/api/categories/cat-1');
+
+        expect(res.status).toBe(200);
+        expect(res.body.message).toBe('Category fetched successfully');
+        expect(res.body.data).toEqual({ id: 'cat-1', name: 'CLEANING', slug: 'cleaning' });
+        // The id from the URL reached the service
+        expect(mockGetCategory).toHaveBeenCalledWith('cat-1');
+    });
+
+    it('returns 404 when the category does not exist', async () => {
+        mockGetCategory.mockResolvedValue(undefined);
+
+        const res = await request(app).get('/api/categories/missing-id');
+
+        expect(res.status).toBe(404);
+        expect(res.body).toEqual({ success: false, message: 'Category not found' });
+    });
+});
+
 describe('POST /api/categories', () => {
     it('rejects a request with no token (401)', async () => {
         const res = await request(app)
