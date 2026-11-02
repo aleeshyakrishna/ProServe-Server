@@ -1,6 +1,6 @@
 /**
  * Evaluation for the AI booking assistant (live Gemini + database).
- * Run: npx ts-node src/tests/assistant.eval.ts
+ * Run: npm run eval:assistant  (takes ~5 min on the Gemini free tier because of pauses; set EVAL_PAUSE_MS=0 on a paid key)
  * Each scenario checks which tool the agent called and with which filters.
  */
 import { runAssistant } from "../services/assistant/assistant.service";
@@ -69,16 +69,28 @@ const scenarios: { name: string; message: string; check: Check }[] = [
     },
 ];
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+// Pause between scenarios to stay under the Gemini free-tier limit (5 requests/min; one scenario can use 2-3 calls)
+const PAUSE_MS = Number(process.env.EVAL_PAUSE_MS ?? 25000);
+
 (async () => {
     let passed = 0;
-    for (const s of scenarios) {
+    for (const [i, s] of scenarios.entries()) {
+        if (i > 0) await sleep(PAUSE_MS);
         const history = s.name === "Follow-up with history"
             ? [
                   { role: "user" as const, text: "I need house cleaning" },
                   { role: "assistant" as const, text: "I found some cleaning services for you." },
               ]
             : [];
-        const r = await runAssistant(s.message, history);
+        let r = await runAssistant(s.message, history);
+        if (r.source === "FALLBACK_RULES") {
+            // Free tier = 5 requests/min: wait as long as Google asks, then retry this scenario once
+            const waitSec = Math.min((r.retryAfterSec ?? 20) + 2, 65);
+            console.log(`      rate-limited - waiting ${waitSec}s and retrying...`);
+            await sleep(waitSec * 1000);
+            r = await runAssistant(s.message, history);
+        }
         const fail = r.source === "FALLBACK_RULES" ? "Gemini unavailable (fallback used)" : s.check(r);
         console.log(`${fail ? "FAIL" : "PASS"}  ${s.name}${fail ? " - " + fail : ""}`);
         console.log(`      tools: ${JSON.stringify(r.toolCalls.map((c) => ({ [c.name]: c.args })))}`);
