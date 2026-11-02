@@ -3,7 +3,12 @@ import app from '../app';
 import { supabase } from '../config/supabase';
 import { UserRepository } from '../repositories/UserRepository';
 import { RoleRepository } from '../repositories/RoleRepository';
-import { getCategoryById, updateCategory } from '../services/category.service';
+import {
+    getAllCategories,
+    getCategoryById,
+    createCategory,
+    updateCategory,
+} from '../services/category.service';
 
 // Only things OUTSIDE our code are faked: Supabase (network) and the
 // repositories/service (database). The real authenticate middleware,
@@ -21,14 +26,18 @@ jest.mock('../repositories/RoleRepository', () => ({
 }));
 
 jest.mock('../services/category.service', () => ({
+    getAllCategories: jest.fn(),
     getCategoryById: jest.fn(),
+    createCategory: jest.fn(),
     updateCategory: jest.fn(),
 }));
 
 const mockGetUser = supabase.auth.getUser as jest.Mock;
 const mockFindUser = UserRepository.findBySupabaseId as jest.Mock;
 const mockFindRoles = RoleRepository.findRolesByUserId as jest.Mock;
+const mockGetAllCategories = getAllCategories as jest.Mock;
 const mockGetCategory = getCategoryById as jest.Mock;
+const mockCreateCategory = createCategory as jest.Mock;
 const mockUpdateCategory = updateCategory as jest.Mock;
 
 const MISSING_TOKEN = 'Authentication token is missing or malformed.';
@@ -49,6 +58,24 @@ beforeEach(() => {
     jest.resetAllMocks();
 });
 
+describe('GET /api/categories (public)', () => {
+    it('returns the list from the service (200)', async () => {
+        mockGetAllCategories.mockResolvedValue([
+            { id: 'cat-1', name: 'CLEANING', slug: 'cleaning' },
+            { id: 'cat-2', name: 'PLUMBING', slug: 'plumbing' },
+        ]);
+
+        const res = await request(app).get('/api/categories');
+
+        expect(res.status).toBe(200);
+        expect(res.body.success).toBe(true);
+        expect(res.body.data).toHaveLength(2);
+        expect(res.body.data[0].name).toBe('CLEANING');
+        // Public route: no login check at all
+        expect(mockGetUser).not.toHaveBeenCalled();
+    });
+});
+
 describe('POST /api/categories', () => {
     it('rejects a request with no token (401)', async () => {
         const res = await request(app)
@@ -59,6 +86,48 @@ describe('POST /api/categories', () => {
         expect(res.body.message).toBe(MISSING_TOKEN);
         // Stopped before even asking Supabase
         expect(mockGetUser).not.toHaveBeenCalled();
+    });
+
+    it('rejects an empty name even when logged in (400)', async () => {
+        loginAsActiveUser();
+
+        const res = await request(app)
+            .post('/api/categories')
+            .set('Authorization', 'Bearer valid-token')
+            .send({ name: '', slug: 'cleaning' });
+
+        expect(res.status).toBe(400);
+        expect(res.body.message).toBe('Validation Error');
+        expect(res.body.errors[0]).toEqual({ field: 'name', message: 'Name is required' });
+        // Bad data never reaches the database
+        expect(mockCreateCategory).not.toHaveBeenCalled();
+    });
+
+    it('rejects a missing slug (400)', async () => {
+        loginAsActiveUser();
+
+        const res = await request(app)
+            .post('/api/categories')
+            .set('Authorization', 'Bearer valid-token')
+            .send({ name: 'Cleaning' });
+
+        expect(res.status).toBe(400);
+        expect(res.body.errors[0].field).toBe('slug');
+        expect(mockCreateCategory).not.toHaveBeenCalled();
+    });
+
+    it('creates a category with valid data when logged in (201)', async () => {
+        loginAsActiveUser();
+        mockCreateCategory.mockResolvedValue({ id: 'cat-1', name: 'CLEANING', slug: 'cleaning' });
+
+        const res = await request(app)
+            .post('/api/categories')
+            .set('Authorization', 'Bearer valid-token')
+            .send({ name: 'Cleaning', slug: 'cleaning' });
+
+        expect(res.status).toBe(201);
+        expect(res.body.data.id).toBe('cat-1');
+        expect(mockCreateCategory).toHaveBeenCalledWith({ name: 'Cleaning', slug: 'cleaning' });
     });
 });
 
