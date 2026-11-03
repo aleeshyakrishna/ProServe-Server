@@ -13,7 +13,9 @@
     "test:coverage": "jest --coverage",
     "test:legacy": "ts-node src/tests/run-tests.ts",
     "eval:assistant": "ts-node src/tests/assistant.eval.ts",
-    "gemini:models": "ts-node src/tests/list-models.ts"
+    "gemini:models": "ts-node src/tests/list-models.ts",
+    "check:rls": "ts-node src/tests/check-rls.ts",
+    "db:rls": "ts-node src/db/rls/apply-rls.ts"
   },
   "keywords": [],
   "author": "",
