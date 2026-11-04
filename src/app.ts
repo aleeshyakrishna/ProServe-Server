@@ -13,7 +13,12 @@ app.use(cookieParser());
 // CORS configuration
 app.use(
   cors({
-    origin: "http://localhost:3000", // Allow requests from Next.js frontend
+    // Allowed frontend origins: CORS_ORIGINS="https://a.com,https://b.com" in .env,
+    // defaults to the local Next.js dev ports.
+    origin: (process.env.CORS_ORIGINS || "http://localhost:3000,http://localhost:3001")
+      .split(",")
+      .map((o) => o.trim())
+      .filter(Boolean),
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"], // Allowed HTTP methods
     allowedHeaders: ["Content-Type", "Authorization"], // Allowed headers
     credentials: true, // Allow cookies to be sent with requests
